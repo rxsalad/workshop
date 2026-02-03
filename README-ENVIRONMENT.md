@@ -2,7 +2,7 @@
 
 We need an environment preconfigured with commonly used tools for testing, such as Python, doctl, helm, kubectl, Docker Engine, and vLLM benchmarker, etc. We can provision a management droplet for this purporse or use your laptop.
 
-You can skip the management droplet if you prefer to install and run these tools on your Windows/WSL or Mac system. However, doing so may impact your laptop, and you will also need to manage potential compatibility issues—for example, a Docker image built on Mac may not run directly on Linux.
+You can skip the management droplet if you prefer to install and run these tools on your laptop (Windows/WSL or Mac). However, doing so may impact your laptop, and you will also need to manage potential compatibility issues—for example, a Docker image built on Mac may not run directly on Linux.
 
 <img src="images/arch.png" alt="architecture" width="800" height="450"/>
 
