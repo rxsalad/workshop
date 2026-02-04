@@ -153,7 +153,7 @@ root@rs-test1:~/.cache/huggingface# cat hub/models--meta-llama--Llama-3.2-1B-Ins
 
 ### Step 4: Check the droplet metrics and GPU metrics using the DO Console
 
-### Step 5: Check the GPU Info on the host (or within the container)
+### Step 5: Check the GPU info on the host (or within the container)
 
 VRAM usage for LLM inference includes both the model weights and the runtime cache, which depends on the number of sessions and the context length of each session.
 
@@ -294,7 +294,7 @@ To simulate real-world scenarios, where client applications and inference server
 
 On the management droplet, we run the same vLLM image without requiring GPUs. We still need the HF token to download the model’s tokenizer (which is very small) which will be used by the vLLM benchmarker, but not the model weights.
 
-### Step 1: Run the vLLM container while overriding the entrypoint on the management droplet
+### Step 1: Run the vLLM container while overriding the entrypoint
 
 ```
 TOKEN=<HUGGING_FACE TOKEN>
