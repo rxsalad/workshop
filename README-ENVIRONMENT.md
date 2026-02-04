@@ -108,6 +108,12 @@ mkdir -p /root/.kube
 snap connect doctl:kube-config 
 ```
 
+[Install Docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04):
+
+```
+apt install docker.io 
+```
+
 Install Python libaries:
 
 ```
