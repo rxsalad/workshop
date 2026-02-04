@@ -58,7 +58,7 @@ doctl compute droplet list | grep rs-test1
 
 ## Run vLLM Container on the GPU Droplet
 
-Open multiple terminals (or VS Code instances) on your laptop to connect to the GPU droplet for various tasks, such as running scripts and monitoring the system.
+Open multiple terminals (or VS Code instances) on your office laptop to connect to the GPU droplet for various tasks, such as running scripts and monitoring the system.
 
 ### Step 0: Perform a basic check:
 

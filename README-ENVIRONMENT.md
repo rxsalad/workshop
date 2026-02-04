@@ -1,6 +1,6 @@
 # Environment Setup
 
-We need an environment preconfigured with commonly used tools for testing, such as Python, doctl, helm, kubectl, Docker Engine, and vLLM benchmarker, etc. We can provision a management droplet for this purporse or use your laptop.
+We need an environment preconfigured with commonly used tools for testing, such as Python, doctl, helm, kubectl, Docker Engine, and vLLM benchmarker, etc. We can provision a management droplet for this purporse or use your office laptop.
 
 You can skip the management droplet if you prefer to install and run these tools on your laptop (Mac or Windows/WSL). However, doing so may impact your laptop, and you will also need to manage potential compatibility issues—for example, a Docker image built on Mac may not run directly on Linux.
 
