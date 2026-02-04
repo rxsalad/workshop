@@ -4,7 +4,7 @@
 
 - Understand the concepts of model and inference.
 
-- Provision a GPU Droplet, run a vLLM container with Llama 3.2 1B, and test LLM inference using OpenAI-compatible APIs.
+- Provision a GPU droplet, run a vLLM container with Llama 3.2 1B, and test LLM inference using OpenAI-compatible APIs.
 
 - Run vLLM benchmarks to evaluate performance.
 
@@ -16,14 +16,16 @@ An inference server takes an input x, applies the model f, and produces the outp
 
 There are many open-source LLM inference servers. [vLLM](https://docs.vllm.ai/en/latest/) is one of the most popular options and provides a ready-to-use container image. Alternatively, we can write low-level Python code to perform LLM inference directly.
 
+We use [the official vllm image](https://hub.docker.com/r/vllm/vllm-openai) for NVIDIA GPUs and [the Llama 3.2 1B](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) in this test.
+
 ## Provision a GPU Droplet using the Management Droplet
 
 Check GPU availability in different regions using [this link](https://digitalocean.enterprise.slack.com/docs/T024FPVD5/F09KEUASL6B).
 
-Provision a Droplet:
+Provision a droplet using the default droplet image:
 
 ```
-doctl compute droplet create rs-test1 \
+doctl compute droplet create <DROPLET_NAME> \
  --image 203838782 \
  --region tor1 \
  --size gpu-6000adax1-48gb \
@@ -54,7 +56,11 @@ doctl compute droplet list | grep rs-test1
 549043682    rs-test1                                                     159.203.45.54      10.137.0.27                      65536      8        500     tor1      Ubuntu NVIDIA AI/ML Ready                                                          39c985c2-dc7f-11e8-b1a9-3cfdfea9ee58    active                                                                                                                 monitoring,droplet_agent,private_networking   
 ```
 
-Access the newly created GPU droplet from your laptop using VS Code or a terminal, and perform a basic check:
+## Run vLLM Container on the GPU Droplet
+
+Open multiple terminals (or VS Code instances) on your laptop to connect to the GPU droplet for various tasks, such as running scripts and monitoring the system.
+
+### Step 0: Perform a basic check:
 
 ```
 cat /etc/os-release
@@ -74,11 +80,7 @@ docker version
 docker ps
 ```
 
-## Run vLLM Container on the GPU Droplet
-
-We use [the official vllm image](https://hub.docker.com/r/vllm/vllm-openai) for NVIDIA GPUs and [the Llama 3.2 1B](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) for this test.
-
-### Step 1: Run the vLLM server with the Llama 3.2 1B
+### Step 1: Run the vLLM server with Llama 3.2 1B
 
 ```
 TOKEN=<HUGGING_FACE TOKEN>
@@ -149,7 +151,7 @@ hub
 root@rs-test1:~/.cache/huggingface# cat hub/models--meta-llama--Llama-3.2-1B-Instruct/snapshots/9213176726f574b556790deb65791e0c5aa438b6/tokenizer.json 
 ```
 
-### Step 4: Check the Droplet metrics and GPU metrics using the DO Console
+### Step 4: Check the droplet metrics and GPU metrics using the DO Console
 
 ### Step 5: Check the GPU Info on the host (or within the container)
 
@@ -183,8 +185,6 @@ root@rs-test1:~/.cache/huggingface# watch -n 1 nvidia-smi
 
 ### Step 6: Test the inference on the host (or within the container) while monitoring the container's logs
 
-Open a new terminal on you laptop and connect to the GPU Droplet:
-
 ```
 root@rs-test1:~# docker ps
 CONTAINER ID   IMAGE                     COMMAND                  CREATED          STATUS          PORTS                                         NAMES
@@ -217,7 +217,7 @@ curl http://localhost:8000/v1/chat/completions   -H "Content-Type: application/j
   }'
 ```
 
-### Step 7: Test the inference from the Management Droplet (or your laptop) while monitoring the container's logs
+### Step 7: Test the inference from the management droplet (or your laptop) while monitoring the container's logs
 
 ```
 curl http://<GPU_DROPLET_PUBLIC_IP>:8000/v1/chat/completions   -H "Content-Type: application/json"   -d '{
@@ -255,7 +255,7 @@ curl http://159.203.45.54:8000/v1/chat/completions   -H "Content-Type: applicati
   }'
 ```
 
-## Run vLLM Benchmarker within the container on the GPU Droplet
+## Run vLLM Benchmarker within the container on the GPU droplet
 
 The vLLM image comes with [the benchmark tool](https://docs.vllm.ai/en/latest/cli/bench/serve/), which we can run directly within the vLLM container:
 
@@ -290,11 +290,11 @@ vllm bench serve --model meta-llama/Llama-3.2-1B-Instruct --dataset-name random 
 
 ## Run vLLM benchmarker on the Management Droplet
 
-To simulate real-world scenarios, where client applications and inference servers may be deployed in different environments and network latency can affect performance, we can run the vLLM benchmarker on the Management Droplet.
+To simulate real-world scenarios, where client applications and inference servers may be deployed in different environments and network latency can affect performance, we can run the vLLM benchmarker on the management droplet.
 
-On the Management Droplet, we run the same vLLM image without requiring GPUs. We still need the HF token to download the model’s tokenizer (which is very small) which will be used by the vLLM benchmarker, but not the model weights.
+On the management droplet, we run the same vLLM image without requiring GPUs. We still need the HF token to download the model’s tokenizer (which is very small) which will be used by the vLLM benchmarker, but not the model weights.
 
-### Step 1: Run the vLLM container while overriding the entrypoint on the Management Droplet
+### Step 1: Run the vLLM container while overriding the entrypoint on the management droplet
 
 ```
 TOKEN=<HUGGING_FACE TOKEN>

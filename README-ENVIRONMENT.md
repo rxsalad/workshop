@@ -2,7 +2,7 @@
 
 We need an environment preconfigured with commonly used tools for testing, such as Python, doctl, helm, kubectl, Docker Engine, and vLLM benchmarker, etc. We can provision a management droplet for this purporse or use your laptop.
 
-You can skip the management droplet if you prefer to install and run these tools on your laptop (Windows/WSL or Mac). However, doing so may impact your laptop, and you will also need to manage potential compatibility issues—for example, a Docker image built on Mac may not run directly on Linux.
+You can skip the management droplet if you prefer to install and run these tools on your laptop (Mac or Windows/WSL). However, doing so may impact your laptop, and you will also need to manage potential compatibility issues—for example, a Docker image built on Mac may not run directly on Linux.
 
 <img src="images/arch.png" alt="architecture" width="800" height="450"/>
 
@@ -37,9 +37,9 @@ All UDP - Destinations: All IPv4 & IPv6
 Apply to the management droplet.
 ```
 
-## Setup Your Laptop
+## Setup Your Laptop and Connect to the Management Droplet
 
-Open your SSH configuration file on your laptop (Mac in this example) and append the wildcard entry at the end.
+Open the SSH configuration file on your laptop (Mac in this example) and append the wildcard entry at the end.
 
 ```
 nano ~/.ssh/config
@@ -60,12 +60,11 @@ Host *
   IdentityFile ~/.ssh/<YOUR_PRIVATE_KEY_NAME>
 ```
 
-Install VS Code on your laptop and use it to access the management droplet:
+Install VS Code on the laptop and use it to access the management droplet:
 
 - In VS Code, click the bottom-left corner and select “Connect to Host,” then add the droplet’s IP address.
-- Open a terminal in the VS Code and create a folder, such as /root/test.
-- Open the folder.
-- Install the Python extension (optional).
+- Open a terminal in the VS Code and create a folder on the droplet, such as /root/test.
+- Then open the folder using VS Code.
 
 ## Install Tools on the Managment Droplet
 
