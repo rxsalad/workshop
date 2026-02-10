@@ -95,6 +95,8 @@ docker run -it --rm --gpus all \
     --model $MODEL
 ```
 
+**Notes:** Since [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/arch-overview.html) is included in the GPU droplet image, using the --gpus all flag mounts all relevant GPU device files into the container, enabling frameworks inside to access the GPUs.
+
 ### Step 2: Check the container and its image
 
 ```
