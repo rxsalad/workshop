@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: vllm-llama
+  labels:
+    app: vllm-llama
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-llama
+  template:
+    metadata:
+      labels:
+        app: vllm-llama
+    spec:
+
+      nodeSelector: # Ensure the pod is scheduled on a specific 1-GPU droplet - mi325x
+        doks.digitalocean.com/gpu-model: mi325x
+
+      tolerations:  # To prevent CPU workloads from running on GPU nodes
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: amd.com/gpu
+        operator: Exists
+        effect: NoSchedule
+
+      containers:
+
+        - name: vllm-server
+          image: docker.io/vllm/vllm-openai-rocm:v0.15.1 
+          # https://hub.docker.com/r/vllm/vllm-openai-rocm/tags
+          imagePullPolicy: Always # Tell the runtime to pull the image, downloading only new or changed layers and reusing existing ones.
+          ports:
+            - containerPort: 8000
+          command: 
+          - bash
+          - -c
+          - |
+          
+            # Uncomment the following line - sleep infinity for testing, to keep the container running/sleeping, and exec into the container to run the vllm serve command manually. 
+            # sleep infinity 
+
+            set -ex  
+
+            # Download the model (using HF_TOKEN) and run the vllm server
+            vllm serve meta-llama/Llama-3.1-70B-Instruct \
+              --host 0.0.0.0 \
+              --port 8000 \
+              --gpu-memory-utilization 0.9
+
+          env: # Create an environment variable (in the container) named HF_TOKEN whose value is taken from the HF_TOKEN key in the hf-token-secret Kubernetes Secret.
+            - name: HF_TOKEN 
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token-secret
+                  key: HF_TOKEN
+
+          resources: # Ensures full, exclusive allocation of 1 GPU 
+            requests:
+              amd.com/gpu: 1
+            limits:
+              amd.com/gpu: 1
+
+          volumeMounts:
+          - name: temp-hf-cache # Mount the host directory /root/.cache/huggingface to the container's /root/.cache/huggingface, to avoid downloading the model every time the container restarts, and to speed up the model loading.
+            mountPath: /root/.cache/huggingface
+
+          - name: dev-kfd       # Enable GPU access within the pod
+            mountPath: /dev/kfd
+          - name: dev-dri       # Enable GPU access within the pod
+            mountPath: /dev/dri
+
+          securityContext:      # Container-level security settings
+            capabilities:       # Enable GPU profiling and debugging (only valid at the container level)
+              add:
+              - SYS_PTRACE
+            seccompProfile:
+              type: Unconfined
+            
+      securityContext:          # Pod-level security settings
+        supplementalGroups:     # Add the container's user in the pod to the video group (only valid at the pod level), and ensure it has permissions to access the GPU devices. 
+        - 44                     
+
+      volumes:
+      - name: temp-hf-cache # This defines a directory (/root/.cache/huggingface) on the DOKS-managed GPU droplet (host) that the pod can use to cache Hugging Face models. If it doesn’t exist, Kubernetes will create it automatically.
+        hostPath:
+          path: /root/.cache/huggingface
+          type: DirectoryOrCreate
+
+      - name: dev-kfd
+        hostPath:
+          path: /dev/kfd
+      - name: dev-dri
+        hostPath:
+          path: /dev/dri
+---

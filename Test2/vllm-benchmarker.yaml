@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: vllm-benchmarker
+  labels:
+    app: vllm-benchmarker
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-benchmarker
+  template:
+    metadata:
+      labels:
+        app: vllm-benchmarker
+    spec:
+
+      containers:
+
+        - name: vllm-benchmarker
+          image: docker.io/vllm/vllm-openai-rocm:v0.15.1 
+          # https://hub.docker.com/r/vllm/vllm-openai-rocm/tags
+          imagePullPolicy: Always
+
+          command: 
+          - bash
+          - -c
+          - |
+          
+            sleep infinity 
+
+          env: # Create an environment variable (in the container) named HF_TOKEN whose value is taken from the HF_TOKEN key in the hf-token-secret Kubernetes Secret.
+            - name: HF_TOKEN # Download the tokenizer, not model weights 
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token-secret
+                  key: HF_TOKEN
+
+---
