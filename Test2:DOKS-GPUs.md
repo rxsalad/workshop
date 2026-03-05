@@ -17,10 +17,10 @@
 
 **For this test, we only require on-demand 1-GPU droplets (AMD mi300 or mi325, more available) — not 8-GPU or contracted GPU droplets.**
 
-[Provision a DOKS cluster](https://docs.digitalocean.com/reference/doctl/reference/kubernetes/cluster/create/#example) with at least 1 CPU droplet and 1 GPU droplet. If GPUs are unavailable, try using different slugs or regions. 
+[Provision a DOKS cluster](https://docs.digitalocean.com/reference/doctl/reference/kubernetes/cluster/create/#example) with at least one CPU droplet and one 1-GPU droplet. If GPUs are unavailable, try using different slugs or regions. 
 
 ```
-# Example 1: create a DOKS with 2 node pools
+# Example: create a DOKS with 2 node pools
 
 doctl kubernetes cluster create rs-atl1-test1 \
   --region atl1 \
@@ -44,9 +44,9 @@ doctl compute size list | grep mi325x1
 
 Check the newly-created DOKS cluster in the DO Console. 
 
-You should see both the CPU and GPU droplets, now managed by DOKS. While you can log into these nodes by adding your SSH keys and configuring them, this is not recommended, as it may create conflicts with DOKS management.
+You should see both the CPU and GPU droplets, that are managed by DOKS. While you can log into these nodes by adding your SSH keys and configuring them, this is not recommended, as it may create conflicts with DOKS management.
 
-Under **Kubernetes → Connecting to Kubernetes** in the Console, copy the provided script and paste it on the management droplet, which can be used to access the DOKS cluster.
+Under **Kubernetes → Connecting to Kubernetes** in the Console, copy the provided script and paste it on the management droplet to configure access, where you will maanage the DOKS cluster using `kubectl` commands.
 
 ```
 doctl kubernetes cluster get rs-atl1-test1 -o json
@@ -71,7 +71,7 @@ kubectl -n kube-system describe pod do-node-agent-amd-device-metrics-exporter-mh
 
 ## Deploy a vLLM Llama (70B) GPU workload from the Management Droplet
 
-[Llama 70B](https://huggingface.co/meta-llama/Llama-3.1-70B-Instruct/tree/main) (FP16) requires approximately 140 GB of VRAM for the model weights alone. In addition, it requires runtime KV cache, which can consume tens of gigabytes of VRAM, depending on the number of concurrent sessions and the context length of each session. A single MI300 or MI325 GPU can run mid-size models without any issues.
+[Llama 70B](https://huggingface.co/meta-llama/Llama-3.1-70B-Instruct/tree/main) (FP16) requires approximately 140 GB of VRAM for the model weights alone. In addition, it requires runtime KV cache, which can consume tens of gigabytes of VRAM, depending on the number of concurrent sessions and the context length of each session. A single MI300 or MI325 GPU can run this mid-size model without any issues.
 
 The vLLM server provides [various parameters](https://docs.vllm.ai/en/stable/cli/serve/#arguments) (flags) that control model loading, inference behavior, GPU usage, and server performance. Take a moment to review the common ones, including host, port, gpu-memory-utilization, and max-model-len, etc.
 
@@ -133,7 +133,7 @@ root@vllm-llama-86449cd99d-f4jn8:/app# vllm bench serve --model meta-llama/Llama
 root@vllm-llama-86449cd99d-f4jn8:/app# 
 ```
 
-**AMD rocm-smi is being deprecated in favor of amd-smi, a newer system management interface that provides functionality similar to nvidia-smi for NVIDIA GPUs.**
+**Notes:** AMD rocm-smi is being deprecated in favor of amd-smi, a newer system management interface that provides functionality similar to nvidia-smi for NVIDIA GPUs.
 
 Use the Web Console in the DO Console to log in to the DOKS-managed GPU droplet and verify:
 
@@ -154,7 +154,9 @@ Check the droplet metrics and GPU metrics using the DO Console, including CPU me
 
 ## Expose the vLLM Llama workload from the Management Droplet
 
-Use the provided YAML to expose the workload both internally and externally. While a NodePort automatically creates a ClusterIP for internal access, it’s generally better to define separate services for different use cases.
+Use the provided YAML to expose the workload both internally and externally. 
+
+While a NodePort automatically creates a ClusterIP for internal access, it’s generally better to define separate services for different use cases.
 
 ```
 kubectl apply -f Test2/service-exposure.yaml
@@ -217,7 +219,7 @@ kubectl run curl-test --rm -i -t --restart=Never --image=curlimages/curl -- \
     -d '{"model":"meta-llama/Llama-3.1-70B-Instruct","messages":[{"role":"user","content":"How are you?"}]}'
 ```
 
-## Deploy a vLLM benchmarker CPU workload using the Management Droplet and Benchamrk the vLLM Llama workload
+## Deploy a vLLM benchmarker CPU workload from the Management Droplet and Benchamrk the vLLM Llama workload
 
 
 Create the vLLM benchmarker deployment (CPU Workload) using the provided yaml:
@@ -239,7 +241,7 @@ Execute into the pod and benchmark the vLLM Llama workload:
 ```
 kubectl exec -it vllm-benchmarker-7994b7977c-kf9cc -- /bin/bash
 
-# Use the internal ClusterIP DNS
+# Benchmarking using the internal ClusterIP DNS
 
 root@vllm-benchmarker-7994b7977c-kf9cc:/app# curl http://vllm-internal.default.svc.cluster.local:80/v1/chat/completions \
     -H "Content-Type: application/json" \
@@ -262,7 +264,7 @@ root@vllm-benchmarker-7994b7977c-kf9cc:/app# vllm bench serve \
 
 root@vllm-benchmarker-7994b7977c-kf9cc:/app# cat result.json
 
-# Use the internal Pod IP
+# Benchmarking using the internal Pod IP
 
 root@vllm-benchmarker-7994b7977c-kf9cc:/app# vllm bench serve \
   --base-url http://10.129.0.227:8000 \
